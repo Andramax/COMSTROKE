@@ -29,20 +29,20 @@ namespace COMSTROKE
                 }
                 file.Close();
             }
-            clsInputText tupla_fecha_creacion = new clsInputText();
-            tupla_fecha_creacion.field = strPrefijo+"_fecha_creacion";
-            tupla_fecha_creacion.tipe = "DATETIME";
-            tupla_fecha_creacion.classification = "N";
-            tupla_fecha_creacion.bit = 2;
-            tupla_fecha_creacion.comment = "FECHA DE CREACION";
-            lstInput.Add(tupla_fecha_creacion);
-            clsInputText tupla_fecha_modificacion = new clsInputText();
-            tupla_fecha_modificacion.field = strPrefijo+"_fecha_modificacion";
-            tupla_fecha_modificacion.tipe = "DATETIME";
-            tupla_fecha_modificacion.classification = "N";
-            tupla_fecha_modificacion.bit = 2;
-            tupla_fecha_modificacion.comment = "FECHA DE CREACION";
-            lstInput.Add(tupla_fecha_modificacion);
+            //clsInputText tupla_fecha_creacion = new clsInputText();
+            //tupla_fecha_creacion.field = strPrefijo+"_fecha_creacion";
+            //tupla_fecha_creacion.tipe = "DATETIME";
+            //tupla_fecha_creacion.classification = "N";
+            //tupla_fecha_creacion.bit = 2;
+            //tupla_fecha_creacion.comment = "FECHA DE CREACION";
+            //lstInput.Add(tupla_fecha_creacion);
+            //clsInputText tupla_fecha_modificacion = new clsInputText();
+            //tupla_fecha_modificacion.field = strPrefijo+"_fecha_modificacion";
+            //tupla_fecha_modificacion.tipe = "DATETIME";
+            //tupla_fecha_modificacion.classification = "N";
+            //tupla_fecha_modificacion.bit = 2;
+            //tupla_fecha_modificacion.comment = "FECHA DE CREACION";
+            //lstInput.Add(tupla_fecha_modificacion);
             return lstInput;
         }
 
@@ -90,6 +90,23 @@ namespace COMSTROKE
             }
             rs += "\t\t" + prefijo+"fecha_creacion" + ",\n";
 
+            rs = rs.Substring(0, rs.Length - 2);
+            rs = rs + "\n";
+            return rs;
+        }
+
+        public static string BuildSelectParameter(List<clsInputText> lstInput, int flag,string tabs)
+        {
+            string rs = "\n";
+
+
+            string prefijo = string.Empty;
+            foreach (var item in lstInput)
+            {
+                prefijo = item.field.Substring(0, 3);
+                rs += tabs + item.field + ",\n";
+                
+            }
             rs = rs.Substring(0, rs.Length - 2);
             rs = rs + "\n";
             return rs;
@@ -247,6 +264,7 @@ namespace COMSTROKE
         }
 
 
+
         public static string generateSpi(List<clsInputText> lstInput, string strTableName, string strTablePureName, string dbname)
         {
             string strIn = clsManager.buildParams(lstInput,0x01);
@@ -307,14 +325,14 @@ namespace COMSTROKE
             string strSpuHeader = "CREATE PROCEDURE spu_{0} ({1})\nAS\n";
             string strSelectTemplate = "\tSELECT{1}\n\tFROM\n\t\t{0}\t\n\tWHERE{2}\n";
 
-            string strUpdateTemplate = "\tBEGIN\n\t\tUPDATE\n\t\t\t{1}\n\t\tSET\t\t\t{0}\t\tWHERE\t{2}\n\tEND";
+            string strUpdateTemplate = "\tIF @@rowcount > 0\n\tBEGIN\n\t\tUPDATE\n\t\t\t{1}\n\t\tSET\t\t\t{0}\t\tWHERE\t{2}\n\t\n\t\tSELECT{3}\t\tFROM\n\t\t\t{4}\t\n\t\tWHERE{5}\tEND";
             #endregion
 
-            string insert_a = clsManager.buildParamsInsert_a(lstInput);
-            string insert_b = clsManager.buildParamsInsert_b(lstInput);
+            string allFields = clsManager.BuildSelectParameter(lstInput, 0x07,"\t\t\t");
             string parametrizacion = clsManager.buildCustomSelect(lstInput);
 
-            string strWhere = GetGenericWhere(lstInput,"\t\t\t");
+            string strWhere = GetGenericWhere(lstInput,"\t\t");
+            string strWhere2 = GetGenericWhere(lstInput, "\t\t\t");
 
             string update = buildUpdateBody(lstInput);
 
@@ -323,9 +341,9 @@ namespace COMSTROKE
             StringBuilder strStackUpdate = new StringBuilder();
             strStack.AppendFormat(strSpuHeader.ToString(), strTablePureName, strIn);
             strStackInsert.AppendFormat(strSelectTemplate.ToString(), dbname, parametrizacion, strWhere);
-            strStackUpdate.AppendFormat(strUpdateTemplate.ToString(), update, dbname, strWhere);
+            strStackUpdate.AppendFormat(strUpdateTemplate.ToString(), update, dbname, strWhere2,allFields, dbname, strWhere2);
             string kk = strStackUpdate.ToString();
-            String rs= strStack.ToString() + strStackInsert.ToString();
+            String rs= strStack.ToString() + strStackInsert.ToString()+ strStackUpdate.ToString();
             return string.Empty;
         }
     }
