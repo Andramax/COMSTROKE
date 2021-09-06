@@ -96,6 +96,31 @@ namespace COMSTROKE
         }
 
 
+        public static string buildUpdateBody(List<clsInputText> lstInput)
+        {
+            string rs = "\n";
+
+
+            string prefijo = string.Empty;
+            foreach (var item in lstInput)
+            {
+                prefijo = item.field.Substring(0, 3);
+                if (item.classification == "P" || item.classification == "F")
+                    rs += "\t\t\t" + item.field+"="+ item.field.Replace(prefijo, "@i_") + ",\n";
+                else if ((item.bit & 0x01) == 0x01)
+                {
+                    rs += "\t\t\t" + item.field + "=" + item.field.Replace(prefijo, "@i_") + ",\n";
+                }
+            }
+            rs += "\t\t\t" + prefijo + "fecha_modificacion=GETDATE()" + ",\n";
+
+            rs = rs.Substring(0, rs.Length - 2);
+            rs = rs + "\n";
+            return rs;
+        }
+
+
+
         public static string buildCustomSelect(List<clsInputText> lstInput)
         {
             string rs = "\n";
@@ -179,7 +204,7 @@ namespace COMSTROKE
             return rs;
         }
 
-        public static string GetGenericWhere(List<clsInputText> lstInput)
+        public static string GetGenericWhere(List<clsInputText> lstInput,string strTabs)
         {
             string prefijo = string.Empty;
             string primary = string.Empty;
@@ -192,7 +217,7 @@ namespace COMSTROKE
                     prefijo = item.field.Substring(0, 3);
                 }
             }
-            return "\n\t\t" + primary + "=@w_ha_id_principal\n";
+            return "\n"+ strTabs + primary + "=@w_ha_id_principal\n";
 
         }
 
@@ -281,19 +306,25 @@ namespace COMSTROKE
             #region definitions DB
             string strSpuHeader = "CREATE PROCEDURE spu_{0} ({1})\nAS\n";
             string strSelectTemplate = "\tSELECT{1}\n\tFROM\n\t\t{0}\t\n\tWHERE{2}\n";
+
+            string strUpdateTemplate = "\tBEGIN\n\t\tUPDATE\n\t\t\t{1}\n\t\tSET\t\t\t{0}\t\tWHERE\t{2}\n\tEND";
             #endregion
 
             string insert_a = clsManager.buildParamsInsert_a(lstInput);
             string insert_b = clsManager.buildParamsInsert_b(lstInput);
             string parametrizacion = clsManager.buildCustomSelect(lstInput);
 
-            string strWhere = GetGenericWhere(lstInput);
+            string strWhere = GetGenericWhere(lstInput,"\t\t\t");
+
+            string update = buildUpdateBody(lstInput);
 
             StringBuilder strStack = new StringBuilder();
             StringBuilder strStackInsert = new StringBuilder();
+            StringBuilder strStackUpdate = new StringBuilder();
             strStack.AppendFormat(strSpuHeader.ToString(), strTablePureName, strIn);
             strStackInsert.AppendFormat(strSelectTemplate.ToString(), dbname, parametrizacion, strWhere);
-
+            strStackUpdate.AppendFormat(strUpdateTemplate.ToString(), update, dbname, strWhere);
+            string kk = strStackUpdate.ToString();
             String rs= strStack.ToString() + strStackInsert.ToString();
             return string.Empty;
         }
