@@ -14,6 +14,7 @@ namespace COMSTROKE
             List<clsInputText> lstInput = clsManager.getParameters(@"i:\co_cuenta_contable.txt");
             string rs=clsManager.generateSpi(lstInput, strTableName, strTablePureName, dbname);
             string rss = clsManager.generateSps(lstInput, strTableName, strTablePureName, dbname+".dbo."+ strTableName);
+            string rsas = clsManager.generateSpu(lstInput, strTableName, strTablePureName, dbname + ".dbo." + strTableName);
             Console.WriteLine(rss);
         }
     }

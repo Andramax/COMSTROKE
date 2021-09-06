@@ -128,6 +128,38 @@ namespace COMSTROKE
         }
 
 
+        public static string BuildUpdateBlock(List<clsInputText> lstInput)
+        {
+            string rs = "\n";
+
+
+            string prefijo = string.Empty;
+            foreach (var item in lstInput)
+            {
+                prefijo = item.field.Substring(0, 3);
+                string eval = string.Empty;
+                if (item.tipe.Contains("INT") || item.tipe.Contains("DECIMAL") || item.tipe.Contains("MONEY") || item.tipe.Contains("LONG") || item.tipe.Contains("SHORT"))
+                {
+                    eval = "0";
+                }
+                else
+                    eval = "''";
+
+
+                //@i_identificacion=case when isnull(@i_identificacion,'' )='' then cl_identificacion else @i_identificacion end,
+                if (item.classification == "P" || item.classification == "F")
+                    rs += "\t\t"+ item.field.Replace(prefijo, "@i_")+"=case when is null("+ item.field.Replace(prefijo, "@i_")+","+ eval + ")="+ eval + " then "+ item.field + " else " + item.field.Replace(prefijo, "@i_") + " end,\n";
+                else if ((item.bit & 0x01) == 0x01)
+                {
+                    rs += "\t\t" + item.field.Replace(prefijo, "@i_") + "=case when is null(" + item.field.Replace(prefijo, "@i_") + "," + eval + ")=" + eval + " then " + item.field + " else " + item.field.Replace(prefijo, "@i_") + " end,\n";
+                }
+            }
+            rs = rs.Substring(0, rs.Length - 2);
+            rs = rs + "\n";
+            return rs;
+        }
+
+
         public static string buildParamsInsert_b(List<clsInputText> lstInput)
         {
             string rs = "\n";
@@ -145,6 +177,23 @@ namespace COMSTROKE
             rs += "\t\t@w_fecha_ingreso,\n";
             rs = rs.Substring(0, rs.Length - 2);
             return rs;
+        }
+
+        public static string GetGenericWhere(List<clsInputText> lstInput)
+        {
+            string prefijo = string.Empty;
+            string primary = string.Empty;
+            foreach (var item in lstInput)
+            {
+                if ((item.bit & 0x02) == 0x02)
+                {
+                    if (item.classification == "P")
+                        primary = item.field;
+                    prefijo = item.field.Substring(0, 3);
+                }
+            }
+            return "\n\t\t" + primary + "=@w_ha_id_principal\n";
+
         }
 
         public static string buildParamsInsert_select(List<clsInputText> lstInput, string strTable)
@@ -214,6 +263,8 @@ namespace COMSTROKE
             string insert_b = clsManager.buildParamsInsert_b(lstInput);
             string parametrizacion = clsManager.buildCustomSelect(lstInput);
 
+            string kk = BuildUpdateBlock(lstInput);
+            string ssa = clsManager.buildParamsInsert_select(lstInput, strTableName);
 
             StringBuilder strStack = new StringBuilder();
             StringBuilder strStackAuto = new StringBuilder();
@@ -222,6 +273,29 @@ namespace COMSTROKE
             
             strStackInsert.AppendFormat(strSpiInsert.ToString(), dbname, insert_a, parametrizacion);
             return strStack.ToString() + strStackInsert.ToString();
+        }
+
+        public static string generateSpu(List<clsInputText> lstInput, string strTableName, string strTablePureName, string dbname)
+        {
+            string strIn = clsManager.buildParams(lstInput, 0x06);
+            #region definitions DB
+            string strSpuHeader = "CREATE PROCEDURE spu_{0} ({1})\nAS\n";
+            string strSelectTemplate = "\tSELECT{1}\n\tFROM\n\t\t{0}\t\n\tWHERE{2}\n";
+            #endregion
+
+            string insert_a = clsManager.buildParamsInsert_a(lstInput);
+            string insert_b = clsManager.buildParamsInsert_b(lstInput);
+            string parametrizacion = clsManager.buildCustomSelect(lstInput);
+
+            string strWhere = GetGenericWhere(lstInput);
+
+            StringBuilder strStack = new StringBuilder();
+            StringBuilder strStackInsert = new StringBuilder();
+            strStack.AppendFormat(strSpuHeader.ToString(), strTablePureName, strIn);
+            strStackInsert.AppendFormat(strSelectTemplate.ToString(), dbname, parametrizacion, strWhere);
+
+            String rs= strStack.ToString() + strStackInsert.ToString();
+            return string.Empty;
         }
     }
 }
