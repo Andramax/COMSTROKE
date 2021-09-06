@@ -344,7 +344,7 @@ namespace COMSTROKE
             strStackUpdate.AppendFormat(strUpdateTemplate.ToString(), update, dbname, strWhere2,allFields, dbname, strWhere2);
             string kk = strStackUpdate.ToString();
             String rs= strStack.ToString() + strStackInsert.ToString()+ strStackUpdate.ToString();
-            return string.Empty;
+            return rs;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace COMSTROKE
             string rs=clsManager.generateSpi(lstInput, strTableName, strTablePureName, dbname);
             string rss = clsManager.generateSps(lstInput, strTableName, strTablePureName, dbname+".dbo."+ strTableName);
             string rsas = clsManager.generateSpu(lstInput, strTableName, strTablePureName, dbname + ".dbo." + strTableName);
-            Console.WriteLine(rss);
+            Console.WriteLine(rs+rss+rsas);
         }
     }
 }
