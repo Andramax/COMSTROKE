@@ -290,7 +290,7 @@ namespace COMSTROKE
         {
             string strIn = clsManager.buildParams(lstInput,0x01);
             #region definitions DB
-            string strSpiHeader = "CREATE PROCEDURE spi_{0}({1})\nAS\n";
+            string strSpiHeader = "IF EXISTS (SELECT 1 FROM sysobjects WHERE name ='spi_{0}' AND type='P')\n\tDROP PROCEDURE spi_{0}\nGO\nCREATE PROCEDURE spi_{0}({1})\nAS\n";
             string strSpiAutoincrement = "\tDECLARE\n\t\t@w_fecha_ingreso  datetime=GETDATE(),\n\t\t@_retorno int = 1,\n\t\t@w_ha_id_cuenta INT,\n\t\t@w_retorno INT,\n\t\t@w_ha_id_principal INT\n\tEXEC @w_retorno =db_administracion.dbo.sp_secuencial\n\t@i_base   = '{0}',\n\t@i_tabla        = '{1}',\n\t@o_siguiente    = @w_ha_id_principal out\n\tIF (@w_retorno != 0)\n\t\treturn @w_retorno\n";
             string strSpiInsert = "\tINSERT INTO dbo.{0}(\n{1}\n\t)VALUES(\n{2}\t\n\t)\n";
 
@@ -315,7 +315,7 @@ namespace COMSTROKE
         {
             string strIn = clsManager.buildParams(lstInput, 0x06);
             #region definitions DB
-            string strSpiHeader = "CREATE PROCEDURE sps_{0} ({1})\nAS\n";
+            string strSpiHeader = "IF EXISTS (SELECT 1 FROM sysobjects WHERE name ='sps_{0}' AND type='P')\n\tDROP PROCEDURE sps_{0}\nGO\nCREATE PROCEDURE sps_{0} ({1})\nAS\n";
             
             string strSpiInsert = "\tSELECT{1}\n\tFROM\n\t\t{0}\t\n\tWHERE{2}\n";
 
@@ -335,7 +335,7 @@ namespace COMSTROKE
         {
             string strIn = clsManager.buildParams(lstInput, 0x06);
             #region definitions DB
-            string strSpiHeader = "CREATE TABLE "+ strTableName+"({0})\nGO\n";
+            string strSpiHeader = "IF EXISTS (SELECT 1 FROM sysobjects WHERE name ='"+strTableName+ "' AND type='U')\n\tDROP TABLE dbo."+strTableName+"\nCREATE TABLE " + strTableName+"({0})\nGO\n";
             #endregion
             string createtable = BuildInsertParameter(lstInput, "\t\t");
             StringBuilder strStack = new StringBuilder();
@@ -349,7 +349,7 @@ namespace COMSTROKE
         {
             string strIn = clsManager.buildParams(lstInput, 0x06);
             #region definitions DB
-            string strSpuHeader = "CREATE PROCEDURE spu_{0} ({1})\nAS\n";
+            string strSpuHeader = "IF EXISTS (SELECT 1 FROM sysobjects WHERE name ='spu_{0}' AND type='P')\n\tDROP PROCEDURE spu_{0}\nGO\nCREATE PROCEDURE spu_{0} ({1})\nAS\n";
             string strSelectTemplate = "\tSELECT{1}\n\tFROM\n\t\t{0}\t\n\tWHERE{2}\n";
 
             string strUpdateTemplate = "\tIF @@rowcount > 0\n\tBEGIN\n\t\tUPDATE\n\t\t\t{1}\n\t\tSET\t\t\t{0}\t\tWHERE\t{2}\n\t\n\t\tSELECT{3}\t\tFROM\n\t\t\t{4}\t\n\t\tWHERE{5}\tEND";
