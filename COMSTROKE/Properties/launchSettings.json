@@ -2,7 +2,7 @@
   "profiles": {
     "COMSTROKE": {
       "commandName": "Project",
-      "commandLineArgs": "\"pr_contabilidad\" \"I:\\co_cuenta_contable.txt\""
+      "commandLineArgs": "-b \"db_contabilidad\" -o \"I:\\co_plan_cuenta.txt\" -d \"i:\\co_plan_cuenta.sql\""
     }
   }
 }
